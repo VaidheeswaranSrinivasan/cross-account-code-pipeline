@@ -1,0 +1,42 @@
+[
+    {
+        "ParameterKey": "CodePipelineS3BucketName",
+        "ParameterValue": "codepipeline-arti-s3-637525"
+    },
+    {
+        "ParameterKey": "DevAccountNumber",
+        "ParameterValue": "158705798707"
+    },
+    {
+        "ParameterKey": "GovernanceCompany",
+        "ParameterValue": "DJ"
+    },
+    {
+        "ParameterKey": "GovernanceDepartment",
+        "ParameterValue": "IT Service"
+    },
+    {
+        "ParameterKey": "GovernanceApplication",
+        "ParameterValue": "Inventory"
+    },
+    {
+        "ParameterKey": "GovernanceLayer",
+        "ParameterValue": "DaaSCompute"
+    },
+    {
+        "ParameterKey": "GovernanceEnvironment",
+        "ParameterValue": "DEV"
+    },
+    {
+        "ParameterKey": "GovernanceBrand",
+        "ParameterValue": "David Jones"
+    },
+    {
+        "ParameterKey": "GovernanceApprover",
+        "ParameterValue": "Vaidhee"
+    },
+    {
+        "ParameterKey": "GovernanceProject",
+        "ParameterValue": "Infosys-dj-rms-availability"
+    }
+]

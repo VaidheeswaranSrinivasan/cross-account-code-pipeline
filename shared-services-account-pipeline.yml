@@ -1,0 +1,633 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template provisions the developer tools needed for the CI/CD strategy"
+
+Parameters:
+  CodeBuildS3BucketName:
+    Description: "The name of the S3 bucket in which the code build artifacts will be stored"
+    Type: String
+  CodeBuildReportsS3BucketName:
+    Description: "The name of the S3 bucket in which the code build code coverage reports will be stored"
+    Type: String
+  RepositoryName:
+    Description: "The name of the code commit repository"
+    Type: String
+  ProjectName:
+    Description: "The name for the code build project"
+    Type: String
+  ProjectDescription:
+    Description: "The description needs to be given for the code build project"
+    Type: String
+  CodeBuildRoleName:
+    Description: "The name of the role that will be used by the code build project"
+    Type: String
+  CodeBuildRoleDescription:
+    Description: "The description to be given for the code build role"
+    Type: String
+  CMKARN:
+    Description: ARN of the KMS CMK creates in Tools account
+    Type: String
+  PipeLineRoleName:
+    Description: "The name of the role that will be asssigned for the code pipeline"
+    Type: String
+  PipeLineRoleDescription:
+    Description: "The description needs to be given for the code pipeline role"
+    Type: String
+  CodePipelineS3BucketName:
+    Description: "The S3 bucket name where the code pipeline will store each stage artifacts"
+    Type: String
+  CodePipelineName:
+    Description: "The name needs to be given for the code pipeline"
+    Type: String
+  GlueTargetS3BucketName:
+    Description: "The name of the S3 bucket where glue will be looking for the python files"
+    Type: String
+  DevStackName:
+    Description: "The name of the stack for creating the dev glue environment"
+    Type: String
+  CloudWatchEventRoleName:
+    Description: "The role name to be given for the cloudwatch event rule"
+    Type: String
+  CloudWatchEventRoleDescription:
+    Description: "The description needs to be given for the cloudwatch event rule"
+    Type: String
+  CloudWatchEventName:
+    Description: "The name for the event which will trigger the code pipeline"
+    Type: String
+  CloudWatchEventDescription:
+    Description: "The description needs to be given for the cloudwatch event rule"
+    Type: String
+  DevAccountNumber:
+    Description: "The AWS account number of the compute dev"
+    Type: Number
+  GovernanceCompany:
+    Description: "The Company name to be given"
+    Type: String
+    AllowedValues:
+      - WHLAU
+      - DJ
+      - CRG
+  GovernanceDepartment:
+    Description: "The Department name to be given"
+    Type: String
+  GovernanceApplication:
+    Description: "The Application name to be given"
+    Type: String
+    AllowedValues:
+      - Inventory
+      - OMS
+  GovernanceLayer:
+    Description: "The Layer name to be given"
+    Type: String
+  GovernanceEnvironment:
+    Description: "The Environment name to be given"
+    Type: String
+    AllowedValues:
+      - DEV
+      - UAT
+      - PROD
+  GovernanceBrand:
+    Description: "The Brand name to be given"
+    Type: String
+  GovernanceApprover:
+    Description: "The Approver name to be given"
+    Type: String
+  GovernanceProject:
+    Description: "The Project name to be given"
+    Type: String
+
+Resources:
+  CodeBuildArtifactS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: CodeBuildS3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CodeBuildArtifactReportsS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: CodeBuildReportsS3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn: CodeBuildRole
+    Properties:
+      Name: 
+       Ref: ProjectName
+      Description: 
+        Ref: ProjectDescription
+      EncryptionKey:
+        Ref: CMKARN
+      Source:
+        Type: CODECOMMIT
+        Location: 
+          Fn::Join:
+            - ""
+            - - "https://git-codecommit."
+              - Ref: AWS::Region
+              - ".amazonaws.com/v1/repos/"
+              - Ref: RepositoryName
+      Environment: 
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        Type: LINUX_CONTAINER
+      ServiceRole:
+        Ref: CodeBuildRole
+      Artifacts:
+        Type: S3
+        Location:
+          Ref: CodeBuildArtifactS3
+        Name: "codebuild-atrifact"
+        OverrideArtifactName: true
+        Packaging: ZIP
+      SecondaryArtifacts:
+        - Type: S3
+          Location:
+            Ref: CodeBuildArtifactReportsS3
+          Name: "codebuild-report-atrifact"
+          OverrideArtifactName: true
+          Packaging: NONE
+          ArtifactIdentifier: reportartifact
+        - Type: S3
+          Location:
+            Ref: CodeBuildArtifactS3
+          Name: "codebuild-main-atrifact"
+          OverrideArtifactName: true
+          Packaging: ZIP
+          ArtifactIdentifier: mainartifact
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName:
+            Fn::Join:
+              - '-'
+              - - "log-group"
+                - Ref: ProjectName
+          Status: ENABLED
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Ref: CodeBuildRoleName
+      Description:
+        Ref: CodeBuildRoleDescription
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CodeBuildRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildCustomPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group-${ProjectName}
+              - Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group-${ProjectName}:*
+          - Effect: Allow
+            Action: 
+              - s3:PutObject
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+              - s3:GetObject
+            Resource:
+              - Fn::Sub: arn:aws:s3:::${CodeBuildS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${CodeBuildS3BucketName}/*
+              - Fn::Sub: arn:aws:s3:::${CodeBuildReportsS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${CodeBuildReportsS3BucketName}/*
+          - Effect: Allow
+            Action:
+              - kms:*
+            Resource: 
+              Ref: CMKARN
+          - Effect: Allow
+            Action: 
+              - codecommit:GitPull
+            Resource:
+              - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}
+          - Effect: Allow
+            Action: 
+              - s3:PutObject
+              - s3:GetObject
+              - s3:GetObjectVersion
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+            Resource:
+              - Fn::Sub: arn:aws:s3:::${CodePipelineS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${CodePipelineS3BucketName}/*
+          - Effect: Allow
+            Action: 
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+            Resource:
+              - Fn::Sub: arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${ProjectName}-*   
+      Roles:
+        -
+          Ref: CodeBuildRole
+  
+  PipeLineRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName:
+        Ref: PipeLineRoleName
+      Description:
+        Ref: PipeLineRoleDescription
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: codepipeline.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  PipeLineRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodePipeLineCustomPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - codepipeline:* 
+              - iam:PassRole
+              - iam:ListRoles
+              - codecommit:List*
+              - codecommit:Get*
+              - codecommit:GitPull
+              - codecommit:UploadArchive
+              - codecommit:CancelUploadArchive
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+              - cloudformation:Describe*
+              - cloudFormation:List*
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:SetStackPolicy
+              - cloudformation:ValidateTemplate
+              - s3:ListAllMyBuckets
+              - s3:GetBucketLocation
+              - sns:*
+              - cloudwatch:*
+            Resource:
+              - "*"
+          - Effect: Allow
+            Action: 
+              - s3:PutObject
+              - s3:GetBucketPolicy
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - Fn::Sub: arn:aws:s3:::${CodePipelineS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${CodePipelineS3BucketName}/*
+              - Fn::Sub: arn:aws:s3:::${GlueTargetS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${GlueTargetS3BucketName}/*
+          - Effect: Allow
+            Action:
+              - kms:*
+            Resource: 
+              Ref: CMKARN
+          - Effect: Allow
+            Action: 
+              - sts:AssumeRole
+            Resource:
+              - Fn::Sub: arn:aws:iam::${DevAccountNumber}:role/cloudformation-codepipeline-role-cicd
+      Roles:
+        -
+          Ref: PipeLineRole
+
+  GlueDestinationS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: GlueTargetS3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  Codepipeline:
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn: PipeLineRole
+    Properties:
+      Name:
+        Ref: CodePipelineName
+      RoleArn:
+        Fn::GetAtt: [PipeLineRole, Arn]
+      ArtifactStore:
+        Type: S3
+        Location:
+          Fn::Sub: ${CodePipelineS3BucketName}
+      Stages:
+        - Name: Source
+          Actions: 
+            - Name: Code
+              ActionTypeId:
+                Category: Source 
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                RepositoryName:
+                  Ref: RepositoryName
+                BranchName: master
+              OutputArtifacts:
+                - Name: CCArtifact
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName:
+                  Ref: ProjectName
+              InputArtifacts:
+                - Name: CCArtifact
+              OutputArtifacts:
+                - Name: CBArtifact
+              RunOrder: 2
+        - Name: CreateCCRepoDev
+          Actions:
+            - Name: CreateCCRepoDev
+              ActionTypeId: 
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                StackName:
+                  Ref: DevStackName
+                Capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::Sub: arn:aws:iam::${DevAccountNumber}:role/cloudformation-role-cicd
+                TemplatePath: CCArtifact::code-commit.yml
+                TemplateConfiguration: CCArtifact::cc-stack-dev.json
+              InputArtifacts:
+                - Name: CCArtifact
+              RunOrder: 3
+              RoleArn:
+                Fn::Sub: arn:aws:iam::${DevAccountNumber}:role/cloudformation-codepipeline-role-cicd
+        - Name: Deploy
+          Actions:
+            - Name: DeployToGlueS3
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              Configuration:
+                BucketName:
+                  Ref: GlueTargetS3BucketName
+                Extract: false
+                ObjectKey: pyspark
+              InputArtifacts:
+                - Name: CBArtifact
+              RunOrder: 4
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CloudWatchEventRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName:
+        Ref: CloudWatchEventRoleName
+      Description:
+        Ref: CloudWatchEventRoleDescription
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: events.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CloudWatchEventRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchEventCustomPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 
+              - codepipeline:StartPipelineExecution
+            Resource:
+              - Fn::Sub: arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineName}
+      Roles:
+        -
+          Ref: CloudWatchEventRole
+              
+  CodePipeLineCWEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name:
+        Ref: CloudWatchEventName
+      Description:
+        Ref: CloudWatchEventDescription
+      EventPattern:
+        source:
+        - aws.codecommit
+        detail-type:
+        - CodeCommit Repository State Change
+        resources:
+        - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}
+        detail:
+          event:
+          - referenceCreated
+          - referenceUpdated
+          referenceType:
+          - branch
+          referenceName:
+          - master
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::Sub: arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineName}
+        RoleArn:
+          Fn::GetAtt: [CloudWatchEventRole, Arn]
+        Id:
+          Fn::Join:
+          - '-'
+          - - codepipeline
+            - Ref: RepositoryName
+  
+  S3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: 
+          Fn::Sub: ${CodePipelineS3BucketName}
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:*
+              Principal:
+                AWS:
+                  - Fn::Sub: aws:iam::${DevAccountNumber}:role/cloudformation-role-cicd
+                  - Fn::Sub: aws:iam::${DevAccountNumber}:role/cloudformation-codepipeline-role-cicd
+                  - Fn::GetAtt: [CodeBuildRole, Arn]
+                  - Fn::GetAtt: [PipeLineRole, Arn]
+              Resource:
+                - Fn::Sub: arn:aws:s3:::${CodePipelineS3BucketName}

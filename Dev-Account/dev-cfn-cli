@@ -1,0 +1,6 @@
+aws cloudformation create-stack --stack-name cfn-cloudformation-role \
+--template-body file://dev-iam-role.yml \
+--parameters file://dev-role-params.json \
+--capabilities CAPABILITY_NAMED_IAM --profile <profile-name>
+
+aws cloudformation delete-stack --stack-name cfn-cloudformation-role --profile <profile-name>

@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template provisions the IAM role needed for cloudformation to deploy the resources"
+
+Parameters:
+  CodePipeLineS3BucketName:
+    Description: "Bucket name of the codepipeline which will store the artifacts"
+    Type: String
+  SharedServicesAccountNumber:
+    Description: "Shared Services account number needs to be given"
+    Type: Number
+  CloudFormationDeployRoleName:
+    Description: "The role name need to be given for the cloudformation"
+    Type: String
+  CloudFormationDeployRoleDescription:
+    Description: "The role description needs to be given for the cloudformation role"
+    Type: String
+  CodePipelineCFNDeployRoleName:
+    Description: "The role name to be given for the codepipline"
+    Type: String
+  CodePipelineCFNDeployRoleDescription:
+    Description: "The role description needs to be given for the codepipeline role"
+    Type: String
+  CMKARN:
+    Description: ARN of the KMS CMK creates in Tools account
+    Type: String
+  GovernanceCompany:
+    Description: "The Company name to be given"
+    Type: String
+    AllowedValues:
+      - WHLAU
+      - DJ
+      - CRG
+  GovernanceDepartment:
+    Description: "The Department name to be given"
+    Type: String
+  GovernanceApplication:
+    Description: "The Application name to be given"
+    Type: String
+    AllowedValues:
+      - Inventory
+      - OMS
+  GovernanceLayer:
+    Description: "The Layer name to be given"
+    Type: String
+  GovernanceEnvironment:
+    Description: "The Environment name to be given"
+    Type: String
+    AllowedValues:
+      - DEV
+      - UAT
+      - PROD
+  GovernanceBrand:
+    Description: "The Brand name to be given"
+    Type: String
+  GovernanceApprover:
+    Description: "The Approver name to be given"
+    Type: String
+  GovernanceProject:
+    Description: "The Project name to be given"
+    Type: String
+     
+Resources:
+  CloudFormationDeployRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName:
+        Ref: CloudFormationDeployRoleName
+      Description:
+        Ref: CloudFormationDeployRoleDescription
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CloudFormationDeployRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CFNDeployCustomPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 
+              - iam:CreateRole
+              - iam:CreatePolicy
+              - iam:GetRole
+              - iam:DeleteRole
+              - iam:PutRolePolicy
+              - iam:PassRole
+              - iam:DeleteRolePolicy
+              - iam:CreateServiceLinkedRole
+              - iam:DeleteServiceLinkedRole
+              - iam:GetServiceLinkedRoleDeletionStatus
+              - cloudformation:*  
+              - glue:*
+              - rds:*
+              - s3:*
+              - cloudwatch:*
+              - lambda:*
+              - codecommit:*
+            Resource:
+              - "*"
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetBucketPolicy
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - Fn::Sub: arn:aws:s3:::${CodePipeLineS3BucketName}/
+              - Fn::Sub: arn:aws:s3:::${CodePipeLineS3BucketName}/*
+      Roles:
+        -
+          Ref: CloudFormationDeployRole
+
+  CodePipelineCFNDeployRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName:
+        Ref: CodePipelineCFNDeployRoleName
+      Description:
+        Ref: CodePipelineCFNDeployRoleDescription
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            AWS:
+              - !Ref SharedServicesAccountNumber
+          Action: sts:AssumeRole
+      Path: /
+      Tags:
+        - Key: 'whlau:governance:company'
+          Value: !Ref GovernanceCompany
+        - Key: 'whlau:governance:department'
+          Value: !Ref GovernanceDepartment
+        - Key: 'whlau:governance:application'
+          Value: !Ref GovernanceApplication
+        - Key: 'whlau:governance:layer'
+          Value: !Ref GovernanceLayer
+        - Key: 'whlau:governance:environment'
+          Value: !Ref GovernanceEnvironment
+        - Key: 'whlau:governance:brand'
+          Value: !Ref GovernanceBrand
+        - Key: 'whlau:governance:Approver'
+          Value: GovernanceApprover
+        - Key: 'whlau:governance:Project'
+          Value: GovernanceProject
+
+  CodePipelineCFNDeployRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodePipelineCFNDeployCustomPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 
+              - cloudformation:*
+              - s3:*
+              - iam:PassRole
+            Resource:
+              - "*"
+          - Effect: Allow
+            Action:
+              - kms:*
+            Resource: !Ref CMKARN
+      Roles:
+        -
+          Ref: CodePipelineCFNDeployRole

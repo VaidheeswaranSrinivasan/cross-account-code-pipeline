@@ -1,0 +1,53 @@
+Please run the below stacks in the same order
+
+===================
+Creation of Stacks
+===================
+
+1.) Run the cloudformation stack "shared-service-account-setup.yml" in the shared services account
+using the below CLI command
+
+aws cloudformation create-stack --stack-name cfn-shared-services-setup \
+--template-body file://shared-services-account-setup.yml \
+--parameters file://shared-services-account-setup-params.json \
+--capabilities CAPABILITY_NAMED_IAM \
+--region ap-southeast-2 \
+--profile <profile-name>
+
+2.) Run the cloudformation stack "dev-account-setup.yml" in the compute dev account using the below
+CLI command
+
+aws cloudformation create-stack --stack-name cfn-dev-account-setup \
+--template-body file://Dev-Account/dev-account-setup.yml \
+--parameters file://Dev-Account/dev-account-setup-params.json \
+--capabilities CAPABILITY_NAMED_IAM \
+--region ap-southeast-2 \
+--profile <profile-name>
+
+3.) Run the cloudformation stack "shared-services-account-pipeline.yml" in the shared services account
+using the below CLI command
+
+aws cloudformation create-stack --stack-name cfn-pipeline-cross-account-test \
+--template-body file://shared-services-account-pipeline.yml \
+--parameters file://shared-services-account-pipeline-params.json \
+--capabilities CAPABILITY_NAMED_IAM \
+--region ap-southeast-2 \
+--profile <profile-name>
+
+
+===================
+Deletion of Stacks
+===================
+
+aws cloudformation delete-stack --stack-name cfn-shared-services-setup \
+--region ap-southeast-2 \
+--profile <profile-name>
+
+aws cloudformation delete-stack --stack-name cfn-dev-account-setup \
+--region ap-southeast-2 \
+--profile <profile-name>
+
+aws cloudformation delete-stack --stack-name cfn-pipeline-cross-account-test \
+--region ap-southeast-2 \
+--profile <profile-name>
+

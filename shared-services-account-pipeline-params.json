@@ -1,0 +1,110 @@
+[
+    {
+        "ParameterKey": "CodeBuildS3BucketName",
+        "ParameterValue": "codebuild-arti-s3-637525"
+    },
+    {
+        "ParameterKey": "CodeBuildReportsS3BucketName",
+        "ParameterValue": "codebuild-report-s3-637525"
+    },
+    {
+        "ParameterKey": "RepositoryName",
+        "ParameterValue": "testbitbucketsyncup"
+    },
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "pyspark-project"
+    },
+    {
+        "ParameterKey": "ProjectDescription",
+        "ParameterValue": "The Project that builds the pyspark code"
+    },
+    {
+        "ParameterKey": "CodeBuildRoleName",
+        "ParameterValue": "pyspark-codebuild-role"
+    },
+    {
+        "ParameterKey": "CodeBuildRoleDescription",
+        "ParameterValue": "The role for codebuild that has necessary permissions to build the pyspark project"
+    },
+    {
+        "ParameterKey": "CMKARN",
+        "ParameterValue": "arn:aws:kms:eu-west-2:456771736854:key/979f8c8a-a6eb-4640-b043-9d74ab1a94e9"
+    },
+    {
+        "ParameterKey": "PipeLineRoleName",
+        "ParameterValue": "pyspark-pipeline-role"
+    },
+    {
+        "ParameterKey": "PipeLineRoleDescription",
+        "ParameterValue": "The role for codepipeline that has necessary permissions to run different pipeline stages"
+    },
+    {
+        "ParameterKey": "CodePipelineS3BucketName",
+        "ParameterValue": "codepipeline-arti-s3-637525"
+    },
+    {
+        "ParameterKey": "CodePipelineName",
+        "ParameterValue": "pyspark-pipeline"
+    },
+    {
+        "ParameterKey": "GlueTargetS3BucketName",
+        "ParameterValue": "glue-target-s3-637525"
+    },
+    {
+        "ParameterKey": "DevStackName",
+        "ParameterValue": "dev-cc-repo"
+    },
+    {
+        "ParameterKey": "CloudWatchEventRoleName",
+        "ParameterValue": "pyspark-pipeline-event-role"
+    },
+    {
+        "ParameterKey": "CloudWatchEventRoleDescription",
+        "ParameterValue": "The role for cloudwatch event that has necessary permissions to trigger the pyspark pipeline"
+    },
+    {
+        "ParameterKey": "CloudWatchEventName",
+        "ParameterValue": "pyspark-pipeline-event"
+    },
+    {
+        "ParameterKey": "CloudWatchEventDescription",
+        "ParameterValue": "The CloudWatch event that triggers the pyspark pipeline when the source code repo gets a change"
+    },
+    {
+        "ParameterKey": "DevAccountNumber",
+        "ParameterValue": "158705798707"
+    },
+    {
+        "ParameterKey": "GovernanceCompany",
+        "ParameterValue": "DJ"
+    },
+    {
+        "ParameterKey": "GovernanceDepartment",
+        "ParameterValue": "IT Service"
+    },
+    {
+        "ParameterKey": "GovernanceApplication",
+        "ParameterValue": "Inventory"
+    },
+    {
+        "ParameterKey": "GovernanceLayer",
+        "ParameterValue": "DaaSCompute"
+    },
+    {
+        "ParameterKey": "GovernanceEnvironment",
+        "ParameterValue": "DEV"
+    },
+    {
+        "ParameterKey": "GovernanceBrand",
+        "ParameterValue": "David Jones"
+    },
+    {
+        "ParameterKey": "GovernanceApprover",
+        "ParameterValue": "Vaidhee"
+    },
+    {
+        "ParameterKey": "GovernanceProject",
+        "ParameterValue": "Infosys-dj-rms-availability"
+    }
+]

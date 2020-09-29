@@ -1,0 +1,62 @@
+[
+    {
+        "ParameterKey": "CMKARN",
+        "ParameterValue": "arn:aws:kms:eu-west-2:456771736854:key/979f8c8a-a6eb-4640-b043-9d74ab1a94e9"
+    },
+    {
+        "ParameterKey": "CodePipeLineS3BucketName",
+        "ParameterValue": "codepipeline-arti-s3-637525"
+    },
+    {
+        "ParameterKey": "SharedServicesAccountNumber",
+        "ParameterValue": "063668765682"
+    },
+    {
+        "ParameterKey": "CloudFormationDeployRoleName",
+        "ParameterValue": "cloudformation-role-cicd"
+    },
+    {
+        "ParameterKey": "CloudFormationDeployRoleDescription",
+        "ParameterValue": "The role that has necessary permission to create the glue env via cloudformation"
+    },
+    {
+        "ParameterKey": "CodePipelineCFNDeployRoleName",
+        "ParameterValue": "cloudformation-codepipeline-role-cicd"
+    },
+    {
+        "ParameterKey": "CodePipelineCFNDeployRoleDescription",
+        "ParameterValue": "The role that has necessary permission for codepipeline to create resources via cloudformation"
+    },
+    {
+        "ParameterKey": "GovernanceCompany",
+        "ParameterValue": "DJ"
+    },
+    {
+        "ParameterKey": "GovernanceDepartment",
+        "ParameterValue": "IT Service"
+    },
+    {
+        "ParameterKey": "GovernanceApplication",
+        "ParameterValue": "Inventory"
+    },
+    {
+        "ParameterKey": "GovernanceLayer",
+        "ParameterValue": "DaaSCompute"
+    },
+    {
+        "ParameterKey": "GovernanceEnvironment",
+        "ParameterValue": "DEV"
+    },
+    {
+        "ParameterKey": "GovernanceBrand",
+        "ParameterValue": "David Jones"
+    },
+    {
+        "ParameterKey": "GovernanceApprover",
+        "ParameterValue": "Vaidhee"
+    },
+    {
+        "ParameterKey": "GovernanceProject",
+        "ParameterValue": "Infosys-dj-rms-availability"
+    }
+]
